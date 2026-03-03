@@ -5,59 +5,77 @@
         <field name="model">project.project</field>
         <field name="inherit_id" ref="project.edit_project"/>
         <field name="arch" type="xml">
-            
             <xpath expr="//div[hasclass('oe_title')]" position="inside">
                 <div class="o_row">
                     <field name="is_kpi_plan"/>
                     <label for="is_kpi_plan"/>
                 </div>
             </xpath>
-
             <xpath expr="//notebook" position="inside">
                 <page string="Kế hoạch KPI" invisible="not is_kpi_plan">
                     <group>
-                        <group string="Thông tin chung">
+                        <group string="Thông cấu hình">
                             <field name="year" required="is_kpi_plan"/>
                             <field name="department_id" required="is_kpi_plan"/>
                         </group>
                         <group string="Kết quả">
                             <field name="kpi_year_target" required="is_kpi_plan"/>
                             <field name="kpi_year_score" readonly="1" force_save="1"/>
-                            <field name="kpi_completion_rate" readonly="1" widget="progressbar"/>
+                            <field name="kpi_completion_rate" readonly="1" force_save="1"/>
                         </group>
                     </group>
                 </page>
             </xpath>
-
         </field>
     </record>
 
-    <record id="view_project_kpi_tree" model="ir.ui.view">
-        <field name="name">project.project.kpi.tree</field>
+    <record id="view_project_tree_inherit_kpi" model="ir.ui.view">
+        <field name="name">project.project.tree.inherit.kpi</field>
         <field name="model">project.project</field>
+        <field name="inherit_id" ref="project.view_project"/>
         <field name="arch" type="xml">
-            <tree string="Danh sách Kế hoạch KPI">
-                <field name="name" string="Tên Kế hoạch"/>
-                <field name="year"/>
-                <field name="department_id"/>
-                <field name="kpi_year_target"/>
-                <field name="kpi_year_score" sum="Tổng điểm toàn công ty"/>
-                <field name="kpi_completion_rate" widget="progressbar"/>
-            </tree>
+            <xpath expr="//field[@name='name']" position="after">
+                <field name="year" optional="show"/>
+                <field name="department_id" optional="show"/>
+                <field name="kpi_year_target" optional="hide"/>
+                <field name="kpi_year_score" optional="hide" sum="Tổng điểm"/>
+                <field name="kpi_completion_rate" optional="show"/>
+            </xpath>
         </field>
     </record>
 
-    <record id="action_project_kpi_plan" model="ir.actions.act_window">
-        <field name="name">Kế hoạch Năm</field>
-        <field name="res_model">project.project</field>
-        <field name="view_mode">tree,form</field>
-        <field name="domain">[('is_kpi_plan', '=', True)]</field>
-        <field name="context">{'default_is_kpi_plan': True}</field>
-        <field name="view_id" ref="view_project_kpi_tree"/>
-        <field name="help" type="html">
-            <p class="o_view_nocontent_smiling_face">
-                Hãy tạo Kế hoạch KPI đầu tiên cho phòng ban của bạn!
-            </p>
+    <record id="view_project_project_filter_inherit_kpi" model="ir.ui.view">
+        <field name="name">project.project.search.inherit.kpi</field>
+        <field name="model">project.project</field>
+        <field name="inherit_id" ref="project.view_project_project_filter"/>
+        <field name="arch" type="xml">
+            <xpath expr="//search" position="inside">
+                <searchpanel>
+                    <field name="department_id" string="PHÒNG BAN" icon="fa-users" select="multi" enable_counters="1"/>
+                    <field name="user_id" string="NGƯỜI QUẢN LÝ" icon="fa-user" select="multi" enable_counters="1"/>
+                </searchpanel>
+            </xpath>
+
+            <xpath expr="//filter[@name='my_projects']" position="after">
+                <filter string="Là Kế hoạch KPI" name="filter_is_kpi_plan" domain="[('is_kpi_plan', '=', True)]"/>
+                <separator/>
+            </xpath>
+            <xpath expr="//filter[@name='Manager']" position="after">
+                <filter string="Năm kế hoạch" name="group_by_year" context="{'group_by': 'year'}"/>
+                <filter string="Phòng ban" name="group_by_department" context="{'group_by': 'department_id'}"/>
+            </xpath>
         </field>
+    </record>
+
+    <record id="project.open_view_project_all" model="ir.actions.act_window">
+        <field name="view_mode">tree,kanban,form</field>
+        <field name="view_id" eval="False"/>
+        <field name="context">{'group_by': 'department_id', 'search_default_filter_is_kpi_plan': 1}</field>
+    </record>
+
+    <record id="project.open_view_project_all_group_stage" model="ir.actions.act_window">
+        <field name="view_mode">tree,kanban,form</field>
+        <field name="view_id" eval="False"/>
+        <field name="context">{'group_by': 'department_id', 'search_default_filter_is_kpi_plan': 1}</field>
     </record>
 </odoo>

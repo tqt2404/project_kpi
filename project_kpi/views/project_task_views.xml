@@ -5,11 +5,9 @@
         <field name="model">project.task</field>
         <field name="inherit_id" ref="project.view_task_form2"/>
         <field name="arch" type="xml">
-            
             <xpath expr="//field[@name='project_id']" position="after">
                 <field name="is_kpi_plan" invisible="1"/>
             </xpath>
-
             <xpath expr="//notebook" position="before">
                 <group string="Thông tin KPI" invisible="not is_kpi_plan">
                     <group>
@@ -23,7 +21,57 @@
                     </group>
                 </group>
             </xpath>
-
         </field>
+    </record>
+
+    <record id="view_task_tree_inherit_kpi" model="ir.ui.view">
+        <field name="name">project.task.tree.inherit.kpi</field>
+        <field name="model">project.task</field>
+        <field name="inherit_id" ref="project.view_task_tree2"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='project_id']" position="after">
+                <field name="department_id" optional="show"/>
+                <field name="kpi_month" optional="show"/>
+                <field name="kpi_target" optional="hide"/>
+                <field name="kpi_actual" optional="hide"/>
+                <field name="kpi_score" optional="show" sum="Tổng điểm"/>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="view_task_search_inherit_kpi" model="ir.ui.view">
+        <field name="name">project.task.search.inherit.kpi</field>
+        <field name="model">project.task</field>
+        <field name="inherit_id" ref="project.view_task_search_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//search" position="inside">
+                <searchpanel>
+                    <field name="stage_id" string="GIAI ĐOẠN" icon="fa-list" select="multi" enable_counters="1"/>
+                    <field name="project_id" string="DỰ ÁN" icon="fa-briefcase" select="multi" enable_counters="1"/>
+                </searchpanel>
+            </xpath>
+            <xpath expr="//filter[@name='my_tasks']" position="after">
+                <filter string="Là Task KPI" name="filter_is_kpi_task" domain="[('is_kpi_plan', '=', True)]"/>
+                <separator/>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="project.action_view_my_task" model="ir.actions.act_window">
+        <field name="view_mode">tree,form,kanban,calendar,pivot,graph,activity</field>
+        <field name="view_id" ref="project.view_task_tree2"/>
+        <field name="context">{'search_default_filter_is_kpi_task': 1}</field>
+    </record>
+
+    <record id="project.action_view_all_task" model="ir.actions.act_window">
+        <field name="view_mode">tree,form,kanban,calendar,pivot,graph,activity</field>
+        <field name="view_id" ref="project.view_task_tree2"/>
+        <field name="context">{'search_default_filter_is_kpi_task': 1}</field>
+    </record>
+
+    <record id="project.action_view_task" model="ir.actions.act_window">
+        <field name="view_mode">tree,form,kanban,calendar,pivot,graph,activity</field>
+        <field name="view_id" ref="project.view_task_tree2"/>
+        <field name="context">{'search_default_filter_is_kpi_task': 1}</field>
     </record>
 </odoo>
