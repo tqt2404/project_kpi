@@ -1,0 +1,16 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Odoo logs and data
+*.log
+*.conf
+
+# Editor settings (VS Code)
+.vscode/
+.idea/
+
+# OS files
+.DS_Store
+Thumbs.db

@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_project_project_form_inherit_kpi" model="ir.ui.view">
+        <field name="name">project.project.form.inherit.kpi</field>
+        <field name="model">project.project</field>
+        <field name="inherit_id" ref="project.edit_project"/>
+        <field name="arch" type="xml">
+            
+            <xpath expr="//div[hasclass('oe_title')]" position="inside">
+                <div class="o_row">
+                    <field name="is_kpi_plan"/>
+                    <label for="is_kpi_plan"/>
+                </div>
+            </xpath>
+
+            <xpath expr="//notebook" position="inside">
+                <page string="Kế hoạch KPI" invisible="not is_kpi_plan">
+                    <group>
+                        <group string="Thông tin chung">
+                            <field name="year" required="is_kpi_plan"/>
+                            <field name="department_id" required="is_kpi_plan"/>
+                        </group>
+                        <group string="Kết quả">
+                            <field name="kpi_year_target" required="is_kpi_plan"/>
+                            <field name="kpi_year_score" readonly="1" force_save="1"/>
+                            <field name="kpi_completion_rate" readonly="1" widget="progressbar"/>
+                        </group>
+                    </group>
+                </page>
+            </xpath>
+
+        </field>
+    </record>
+
+    <record id="view_project_kpi_tree" model="ir.ui.view">
+        <field name="name">project.project.kpi.tree</field>
+        <field name="model">project.project</field>
+        <field name="arch" type="xml">
+            <tree string="Danh sách Kế hoạch KPI">
+                <field name="name" string="Tên Kế hoạch"/>
+                <field name="year"/>
+                <field name="department_id"/>
+                <field name="kpi_year_target"/>
+                <field name="kpi_year_score" sum="Tổng điểm toàn công ty"/>
+                <field name="kpi_completion_rate" widget="progressbar"/>
+            </tree>
+        </field>
+    </record>
+
+    <record id="action_project_kpi_plan" model="ir.actions.act_window">
+        <field name="name">Kế hoạch Năm</field>
+        <field name="res_model">project.project</field>
+        <field name="view_mode">tree,form</field>
+        <field name="domain">[('is_kpi_plan', '=', True)]</field>
+        <field name="context">{'default_is_kpi_plan': True}</field>
+        <field name="view_id" ref="view_project_kpi_tree"/>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                Hãy tạo Kế hoạch KPI đầu tiên cho phòng ban của bạn!
+            </p>
+        </field>
+    </record>
+</odoo>

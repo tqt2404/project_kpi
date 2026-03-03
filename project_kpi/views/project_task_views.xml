@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_task_form2_inherit_kpi" model="ir.ui.view">
+        <field name="name">project.task.form.inherit.kpi</field>
+        <field name="model">project.task</field>
+        <field name="inherit_id" ref="project.view_task_form2"/>
+        <field name="arch" type="xml">
+            
+            <xpath expr="//field[@name='project_id']" position="after">
+                <field name="is_kpi_plan" invisible="1"/>
+            </xpath>
+
+            <xpath expr="//notebook" position="before">
+                <group string="Thông tin KPI" invisible="not is_kpi_plan">
+                    <group>
+                        <field name="kpi_month" required="is_kpi_plan"/>
+                        <field name="kpi_weight" required="is_kpi_plan"/>
+                    </group>
+                    <group>
+                        <field name="kpi_target" required="is_kpi_plan"/>
+                        <field name="kpi_actual"/>
+                        <field name="kpi_score" readonly="1" force_save="1"/>
+                    </group>
+                </group>
+            </xpath>
+
+        </field>
+    </record>
+</odoo>

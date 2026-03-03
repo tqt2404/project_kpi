@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <menuitem id="menu_project_report_kpi"
+              name="Báo cáo KPI"
+              action="action_kpi_report_pivot"
+              parent="project.menu_project_report"
+              sequence="50"/>
+</odoo>
