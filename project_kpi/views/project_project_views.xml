@@ -14,18 +14,23 @@
             <xpath expr="//notebook" position="inside">
                 <page string="Kế hoạch KPI" invisible="not is_kpi_plan">
                     <group>
-                        <group string="Thông cấu hình">
+                        <group string="Thông tin chung">
                             <field name="year" required="is_kpi_plan"/>
                             <field name="department_id" required="is_kpi_plan"/>
                         </group>
                         <group string="Kết quả">
                             <field name="kpi_year_target" required="is_kpi_plan"/>
-                            <field name="kpi_year_score" readonly="1" force_save="1"/>
-                            <field name="kpi_completion_rate" readonly="1" force_save="1"/>
+                            
+                            <field name="kpi_allocated_weight"/>
+                            
+                            <field name="kpi_year_actual" string="KPI đạt được"/> 
+                            <field name="kpi_completion_rate" widget="percentage"/>
+                            <field name="kpi_year_score" string="Tổng điểm KPI năm"/>
                         </group>
                     </group>
                 </page>
             </xpath>
+            
         </field>
     </record>
 
@@ -34,14 +39,21 @@
         <field name="model">project.project</field>
         <field name="inherit_id" ref="project.view_project"/>
         <field name="arch" type="xml">
+            
+            <xpath expr="//field[@name='partner_id']" position="attributes">
+                <attribute name="invisible">1</attribute>
+            </xpath>
+
             <xpath expr="//field[@name='name']" position="after">
                 <field name="year" optional="show"/>
-                <field name="department_id" optional="show"/>
+                <field name="kpi_completion_rate" widget="percentage" optional="show"/>
+                
+                <field name="department_id" optional="hide"/>
                 <field name="kpi_year_target" optional="hide"/>
                 <field name="kpi_year_score" optional="hide" sum="Tổng điểm"/>
-                <field name="kpi_completion_rate" optional="show"/>
             </xpath>
-        </field>
+            
+            </field>
     </record>
 
     <record id="view_project_project_filter_inherit_kpi" model="ir.ui.view">

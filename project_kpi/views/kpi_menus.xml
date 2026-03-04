@@ -1,25 +1,26 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
     <record id="action_kpi_report_pivot" model="ir.actions.act_window">
-        <field name="name">Báo cáo KPI Tháng</field>
+        <field name="name">Báo cáo KPI</field>
         <field name="res_model">project.task</field>
         <field name="view_mode">pivot,graph,tree</field>
-        
+        <field name="search_view_id" ref="view_task_search_kpi_report"/>
         <field name="domain">[('is_kpi_plan', '=', True), ('kpi_month', '!=', False)]</field>
-        
         <field name="context">{
+            'search_default_filter_is_kpi_task': 1,
+            'pivot_measures': ['kpi_score', 'kpi_target', 'kpi_actual', 'kpi_weight'],
+            'pivot_column_groupby': ['kpi_month'],
+            'pivot_row_groupby': ['department_id', 'kpi_user_id'],
             'create': False, 
             'edit': False, 
             'delete': False
         }</field>
-        
-        <field name="view_id" ref="view_project_task_kpi_pivot"/>
-        <field name="help" type="html">
-            <p class="o_view_nocontent_smiling_face">
-                Chưa có dữ liệu đánh giá KPI nào để hiển thị!
-            </p>
-        </field>
     </record>
+    <menuitem id="menu_project_kpi_tasks"
+              name="KPI"
+              action="action_kpi_task_management"
+              parent="project.menu_project_management"
+              sequence="5"/>
 
     <menuitem id="menu_project_report_kpi"
               name="Phân tích KPI"

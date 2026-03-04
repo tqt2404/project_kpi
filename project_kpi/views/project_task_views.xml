@@ -8,10 +8,14 @@
             <xpath expr="//field[@name='project_id']" position="after">
                 <field name="is_kpi_plan" invisible="1"/>
             </xpath>
+            <xpath expr="//field[@name='user_ids']" position="attributes">
+                <attribute name="invisible">1</attribute>
+            </xpath>
             <xpath expr="//notebook" position="before">
                 <group string="Thông tin KPI" invisible="not is_kpi_plan">
                     <group>
                         <field name="kpi_month" required="is_kpi_plan"/>
+                        <field name="kpi_user_id" required="is_kpi_plan"/>
                         <field name="kpi_weight" required="is_kpi_plan"/>
                     </group>
                     <group>
@@ -29,12 +33,28 @@
         <field name="model">project.task</field>
         <field name="inherit_id" ref="project.view_task_tree2"/>
         <field name="arch" type="xml">
-            <xpath expr="//field[@name='project_id']" position="after">
-                <field name="department_id" optional="show"/>
-                <field name="kpi_month" optional="show"/>
-                <field name="kpi_target" optional="hide"/>
-                <field name="kpi_actual" optional="hide"/>
-                <field name="kpi_score" optional="show" sum="Tổng điểm"/>
+            <xpath expr="//field[@name='project_id']" position="attributes">
+                <attribute name="column_invisible">1</attribute>
+            </xpath>
+            <xpath expr="//field[@name='partner_id']" position="attributes">
+                <attribute name="column_invisible">1</attribute>
+            </xpath>
+            <xpath expr="//field[@name='tag_ids']" position="attributes">
+                <attribute name="column_invisible">1</attribute>
+            </xpath>
+            <xpath expr="//field[@name='activity_ids']" position="attributes">
+                <attribute name="column_invisible">1</attribute>
+            </xpath>
+            <xpath expr="//field[@name='user_ids']" position="attributes">
+                <attribute name="column_invisible">1</attribute>
+            </xpath>
+            <xpath expr="//field[@name='name']" position="after">
+                <field name="kpi_month" string="Tháng" optional="show"/>
+                <field name="kpi_user_id" widget="many2one_avatar_user" string="Nhân sự" optional="show"/>
+                <field name="kpi_weight" string="Trọng số (%)" optional="show" sum="Tổng trọng số"/>
+                <field name="kpi_target" string="Mục tiêu" optional="show"/>
+                <field name="kpi_actual" string="Thực tế" optional="show"/>
+                <field name="kpi_score" string="Điểm" optional="show" sum="Tổng điểm" widget="badge" decoration-success="kpi_score > 0"/>
             </xpath>
         </field>
     </record>
@@ -46,32 +66,136 @@
         <field name="arch" type="xml">
             <xpath expr="//search" position="inside">
                 <searchpanel>
-                    <field name="stage_id" string="GIAI ĐOẠN" icon="fa-list" select="multi" enable_counters="1"/>
-                    <field name="project_id" string="DỰ ÁN" icon="fa-briefcase" select="multi" enable_counters="1"/>
+                    <field name="state" string="Trạng thái" icon="fa-check-square-o" enable_counters="1" select="multi"/>
                 </searchpanel>
             </xpath>
-            <xpath expr="//filter[@name='my_tasks']" position="after">
-                <filter string="Là Task KPI" name="filter_is_kpi_task" domain="[('is_kpi_plan', '=', True)]"/>
-                <separator/>
+            
+            <xpath expr="//group" position="inside">
+                <filter string="Tháng đánh giá" name="group_kpi_month" context="{'group_by': 'kpi_month'}"/>
+                <filter string="Trạng thái" name="group_state" context="{'group_by': 'state'}"/>
             </xpath>
         </field>
     </record>
 
+    <record id="view_task_search_standard_with_sidebar" model="ir.ui.view">
+        <field name="name">project.task.search.standard.sidebar</field>
+        <field name="model">project.task</field>
+        <field name="arch" type="xml">
+            <search string="Tìm kiếm Nhiệm vụ">
+                <field name="name" string="Tiêu đề"/>
+                <field name="project_id"/>
+                <field name="department_id"/>
+                <filter string="Nhiệm vụ của tôi" name="my_tasks" domain="[('user_ids', 'in', uid)]"/>
+                <filter string="Là Task KPI" name="filter_is_kpi_task" domain="[('is_kpi_plan', '=', True)]"/>
+                <group expand="0" string="Nhóm theo">
+                    <filter string="Giai đoạn" name="groupby_stage" context="{'group_by':'stage_id'}"/>
+                    <filter string="Phòng ban" name="groupby_department" context="{'group_by':'department_id'}"/>
+                </group>
+                <searchpanel>
+                    <field name="stage_id" string="GIAI ĐOẠN" icon="fa-list" select="multi" enable_counters="1"/>
+                    <field name="project_id" string="DỰ ÁN" icon="fa-briefcase" select="multi" enable_counters="1"/>
+                </searchpanel>
+            </search>
+        </field>
+    </record>
+
+    <record id="view_task_tree_kpi_management" model="ir.ui.view">
+        <field name="name">project.task.tree.kpi.management</field>
+        <field name="model">project.task</field>
+        <field name="arch" type="xml">
+            <tree string="KPI" decoration-info="is_kpi_plan" create="0">
+                <field name="is_kpi_plan" column_invisible="True"/>
+                <field name="name" string="Chỉ số/Nhiệm vụ"/>
+                <field name="kpi_user_id" widget="many2one_avatar_user"/>
+                <field name="kpi_month"/>
+                <field name="kpi_target" sum="Tổng mục tiêu"/>
+                <field name="kpi_actual" sum="Tổng thực tế"/>
+                <field name="kpi_score" sum="Tổng điểm" widget="badge" decoration-success="kpi_score > 0"/>
+            </tree>
+        </field>
+    </record>
+
+    <record id="view_task_search_kpi_management" model="ir.ui.view">
+        <field name="name">project.task.search.kpi.management</field>
+        <field name="model">project.task</field>
+        <field name="arch" type="xml">
+            <search string="Tìm kiếm KPI">
+                <field name="name"/>
+                <field name="kpi_user_id"/>
+                <filter string="KPI" name="filter_is_kpi_task" domain="[('is_kpi_plan', '=', True)]"/>
+                <group expand="1" string="Nhóm theo">
+                    <filter string="Tháng" name="group_month" context="{'group_by':'kpi_month'}"/>
+                    <filter string="Năm đánh giá" name="group_year" context="{'group_by':'kpi_year'}"/>
+                    <filter string="Phòng ban" name="group_department" context="{'group_by':'department_id'}"/>
+                </group>
+                <searchpanel>
+                    <field name="kpi_year" string="NĂM" icon="fa-calendar" select="multi" enable_counters="1"/>
+                    <field name="department_id" string="PHÒNG BAN" icon="fa-users" select="multi" enable_counters="1"/>
+                </searchpanel>
+            </search>
+        </field>
+    </record>
+
     <record id="project.action_view_my_task" model="ir.actions.act_window">
-        <field name="view_mode">tree,form,kanban,calendar,pivot,graph,activity</field>
-        <field name="view_id" ref="project.view_task_tree2"/>
-        <field name="context">{'search_default_filter_is_kpi_task': 1}</field>
+        <field name="name">Nhiệm vụ của tôi</field>
+        <field name="res_model">project.task</field>
+        <field name="view_mode">tree,kanban,form,calendar,pivot,graph,activity</field>
+        <field name="view_id" ref="project.view_task_tree2"/> <field name="search_view_id" ref="view_task_search_standard_with_sidebar"/>
+        <field name="context">{'search_default_my_tasks': 1}</field>
     </record>
 
-    <record id="project.action_view_all_task" model="ir.actions.act_window">
-        <field name="view_mode">tree,form,kanban,calendar,pivot,graph,activity</field>
-        <field name="view_id" ref="project.view_task_tree2"/>
-        <field name="context">{'search_default_filter_is_kpi_task': 1}</field>
+    <record id="action_kpi_task_management" model="ir.actions.act_window">
+        <field name="name">KPI</field>
+        <field name="res_model">project.task</field>
+        <field name="view_mode">tree,kanban,form,pivot,graph</field>
+        <field name="view_id" ref="view_task_tree_kpi_management"/> <field name="search_view_id" ref="view_task_search_kpi_management"/>
+        <field name="domain">[('is_kpi_plan', '=', True)]</field>
+        <field name="context">{'search_default_filter_is_kpi_task': 1, 'search_default_group_department': 1}</field>
     </record>
 
-    <record id="project.action_view_task" model="ir.actions.act_window">
-        <field name="view_mode">tree,form,kanban,calendar,pivot,graph,activity</field>
+    <record id="view_task_search_kpi_report" model="ir.ui.view">
+        <field name="name">project.task.search.report.kpi</field>
+        <field name="model">project.task</field>
+        <field name="arch" type="xml">
+            <search string="Tìm kiếm KPI">
+                <field name="name"/>
+                <filter string="KPI" name="filter_is_kpi_task" domain="[('is_kpi_plan', '=', True)]"/>
+                <group expand="1" string="Nhóm theo">
+                    <filter string="Năm đánh giá" name="group_year" context="{'group_by':'kpi_year'}"/>
+                    <filter string="Phòng ban" name="group_department" context="{'group_by':'department_id'}"/>
+                    <filter string="Nhân sự" name="group_user" context="{'group_by':'kpi_user_id'}"/>
+                    <filter string="Tháng" name="group_month" context="{'group_by':'kpi_month'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <record id="project.act_project_project_2_project_task_all" model="ir.actions.act_window">
+        <field name="name">Nhiệm vụ</field>
+        <field name="res_model">project.task</field>
+        <field name="view_mode">tree,kanban,form,calendar,pivot,graph</field>
+        <field name="search_view_id" ref="view_task_search_inherit_kpi"/>
+        <field name="view_ids" eval="[(5, 0, 0), 
+            (0, 0, {'view_mode': 'tree', 'view_id': ref('project.view_task_tree2'), 'sequence': 1}),
+            (0, 0, {'view_mode': 'kanban', 'sequence': 2}),
+            (0, 0, {'view_mode': 'form', 'sequence': 3})
+        ]"/>
+        <field name="context">{
+            'group_by': 'kpi_user_id',
+            'search_default_filter_is_kpi_task': 1
+        }</field>
+    </record>
+
+    <record id="project.action_view_my_task" model="ir.actions.act_window">
+        <field name="name">Nhiệm vụ của tôi</field>
+        <field name="res_model">project.task</field>
+        <field name="view_mode">tree,kanban,form,calendar,pivot,graph,activity</field>
         <field name="view_id" ref="project.view_task_tree2"/>
-        <field name="context">{'search_default_filter_is_kpi_task': 1}</field>
+        <field name="search_view_id" ref="view_task_search_standard_with_sidebar"/>
+        <field name="context">{'search_default_my_tasks': 1}</field>
+        <field name="view_ids" eval="[(5, 0, 0), 
+            (0, 0, {'view_mode': 'tree', 'view_id': ref('project.view_task_tree2'), 'sequence': 1}),
+            (0, 0, {'view_mode': 'kanban', 'view_id': ref('project.view_task_kanban'), 'sequence': 2})
+        ]"/>
     </record>
 </odoo>
