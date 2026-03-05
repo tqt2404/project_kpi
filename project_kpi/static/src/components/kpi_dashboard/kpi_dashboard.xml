@@ -1,0 +1,110 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+    <t t-name="project_kpi.DashboardMain" owl="1">
+        <div class="o_action_manager bg-200 w-100 h-100 overflow-auto p-4">
+            
+            <div class="bg-white p-3 mb-4 rounded shadow-sm d-flex gap-3 align-items-center flex-wrap">
+                <h4 class="mb-0 me-3"><i class="fa fa-tachometer"/> TỔNG HỢP KPI</h4>
+                
+                <select class="form-select w-auto" t-on-change="(e) => this.updateFilter('year', e)">
+                    <t t-foreach="state.data.filters.years" t-as="year" t-key="year">
+                        <option t-att-value="year" t-att-selected="year == state.filters.year">
+                            Năm <t t-esc="year"/>
+                        </option>
+                    </t>
+                </select>
+
+                <select class="form-select w-auto" t-on-change="(e) => this.updateFilter('month', e)">
+                    <option value="" t-att-selected="state.filters.month == ''">Tất cả các tháng</option>
+                    <option value="01" t-att-selected="state.filters.month == '01'">Tháng 1</option>
+                    <option value="02" t-att-selected="state.filters.month == '02'">Tháng 2</option>
+                    <option value="03" t-att-selected="state.filters.month == '03'">Tháng 3</option>
+                    <option value="04" t-att-selected="state.filters.month == '04'">Tháng 4</option>
+                    <option value="05" t-att-selected="state.filters.month == '05'">Tháng 5</option>
+                    <option value="06" t-att-selected="state.filters.month == '06'">Tháng 6</option>
+                    <option value="07" t-att-selected="state.filters.month == '07'">Tháng 7</option>
+                    <option value="08" t-att-selected="state.filters.month == '08'">Tháng 8</option>
+                    <option value="09" t-att-selected="state.filters.month == '09'">Tháng 9</option>
+                    <option value="10" t-att-selected="state.filters.month == '10'">Tháng 10</option>
+                    <option value="11" t-att-selected="state.filters.month == '11'">Tháng 11</option>
+                    <option value="12" t-att-selected="state.filters.month == '12'">Tháng 12</option>
+                </select>
+
+                <select class="form-select w-auto" t-on-change="(e) => this.updateFilter('department_id', e)">
+                    <option value="">Tất cả phòng ban</option>
+                    <t t-foreach="state.data.filters.departments" t-as="dept" t-key="dept.id">
+                        <option t-att-value="dept.id" t-att-selected="dept.id == state.filters.department_id">
+                            <t t-esc="dept.name"/>
+                        </option>
+                    </t>
+                </select>
+            </div>
+
+            <t t-if="state.isLoading">
+                <div class="text-center py-5">
+                    <i class="fa fa-spinner fa-spin fa-3x text-primary"/>
+                </div>
+            </t>
+
+            <t t-else="">
+                <div class="row g-4 mb-4">
+                    <div class="col-md-4">
+                        <KpiCard title="'Tổng KPI Mục Tiêu'" value="state.data.summary.total_target" icon="'fa-bullseye'" color="'info'"/>
+                    </div>
+                    <div class="col-md-4">
+                        <KpiCard title="'Tổng KPI Thực Tế'" value="state.data.summary.total_actual" icon="'fa-check-circle'" color="'success'"/>
+                    </div>
+                    <div class="col-md-4">
+                        <KpiCard title="'Tổng Điểm Đạt Được'" value="state.data.summary.total_score" icon="'fa-star'" color="'warning'"/>
+                    </div>
+                </div>
+
+                <div class="row g-4 mb-4">
+                    <div class="col-md-8">
+                        <KpiChart title="'Điểm KPI theo Phòng ban'" type="'bar'" data="state.data.charts" />
+                    </div>
+                    <div class="col-md-4">
+                        <KpiChart title="'Cơ cấu Trạng thái'" type="'doughnut'" data="state.data.status_data" />
+                    </div>
+                </div>
+
+                <div class="row g-4">
+                    <div class="col-md-12">
+                        <div class="card shadow-sm border-0">
+                            <div class="card-header bg-white">
+                                <h5 class="mb-0">Top 10 Nhân sự KPI Xuất sắc</h5>
+                            </div>
+                            <div class="card-body p-0 table-responsive">
+                                <table class="table table-hover table-striped mb-0 align-middle">
+                                    <thead class="table-light">
+                                        <tr>
+                                            <th class="text-center" style="width: 80px;">Hạng</th>
+                                            <th>Nhân sự</th>
+                                            <th>Phòng ban</th>
+                                            <th class="text-end pe-4">Tổng điểm</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <t t-foreach="state.data.top_users" t-as="user" t-key="user.rank">
+                                            <tr>
+                                                <td class="text-center fw-bold text-muted"><t t-esc="user.rank"/></td>
+                                                <td class="fw-bold"><t t-esc="user.name"/></td>
+                                                <td><span class="badge bg-secondary"><t t-esc="user.dept"/></span></td>
+                                                <td class="text-end pe-4">
+                                                    <span class="badge bg-success rounded-pill px-3 py-2 fs-6"><t t-esc="user.score"/></span>
+                                                </td>
+                                            </tr>
+                                        </t>
+                                        <tr t-if="state.data.top_users.length === 0">
+                                            <td colspan="4" class="text-center text-muted py-4">Chưa có dữ liệu</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </t>
+        </div>
+    </t>
+</templates>

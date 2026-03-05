@@ -1,11 +1,25 @@
 from odoo import models, fields, api
 from odoo.exceptions import ValidationError
+import datetime
 
 class Project(models.Model):
     _inherit = 'project.project'
 
     is_kpi_plan = fields.Boolean(string='Là Kế hoạch KPI', default=False)
 
+    kpi_filter_selection = fields.Selection([
+        ('is_kpi', 'Kế hoạch KPI'),
+        ('not_kpi', 'Dự án thường')
+    ], string='Phân loại dự án', compute='_compute_kpi_filter_selection', store=True)
+
+    @api.depends('is_kpi_plan')
+    def _compute_kpi_filter_selection(self):
+        for record in self:
+            if record.is_kpi_plan:
+                record.kpi_filter_selection = 'is_kpi'
+            else:
+                record.kpi_filter_selection = 'not_kpi'
+    
     @api.model
     def _get_year_selection(self):
         current_year = fields.Date.context_today(self).year
@@ -44,6 +58,21 @@ class Project(models.Model):
         store=True
     )
 
+    _sql_constraints = [
+        ('unique_department_year', 
+         'UNIQUE(department_id, year)', 
+         'Lỗi: Mỗi phòng ban chỉ được phép có một kế hoạch KPI trong một năm!')
+    ]
+    
+    
+    def _compute_display_name(self):
+        super()._compute_display_name()
+        for record in self:
+            if record.is_kpi_plan and record.department_id:
+                percentage = int(record.kpi_completion_rate * 100)
+                # Tên sẽ là: [2026 - IT] Kế hoạch năm - Tiến độ: 84%
+                record.display_name = f"[{record.year} - {record.department_id.name}] {record.name} - Tiến độ: {percentage}%"
+                
     @api.depends('task_ids.kpi_actual', 'task_ids.kpi_score', 'is_kpi_plan')
     def _compute_kpi_year_score(self):
         for record in self:
@@ -92,3 +121,17 @@ class Project(models.Model):
                         "Lỗi! Tổng KPI mục tiêu các tháng (%s) không được vượt quá KPI mục tiêu năm (%s)." 
                         % (total_task_target, record.kpi_year_target)
                     )
+    
+    @api.onchange('year', 'is_kpi_plan')
+    def _onchange_year_set_dates(self):
+        """Nếu là KPI: Tự nhảy ngày. Nếu không: Để trống cho user nhập"""
+        for record in self:
+            if record.is_kpi_plan and record.year:
+                try:
+                    year_int = int(record.year)
+                    record.date_start = datetime.date(year_int, 1, 1)
+                    record.date = datetime.date(year_int, 12, 31)
+                except:
+                    pass
+            elif not record.is_kpi_plan:
+                pass

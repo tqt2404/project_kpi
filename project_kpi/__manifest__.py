@@ -17,8 +17,14 @@
         'views/project_task_views.xml',
         'views/kpi_report_views.xml',
         'views/kpi_menus.xml',
+        'views/kpi_dashboard_views.xml'
     ],
     'assets': {
+        'web.assets_backend': [
+            'project_kpi/static/src/components/**/*.js',
+            'project_kpi/static/src/components/**/*.xml',
+            'project_kpi/static/src/components/**/*.scss',
+        ],
     },
     'installable': True,
     'application': True,

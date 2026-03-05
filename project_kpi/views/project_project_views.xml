@@ -5,6 +5,20 @@
         <field name="model">project.project</field>
         <field name="inherit_id" ref="project.edit_project"/>
         <field name="arch" type="xml">
+
+            <xpath expr="//field[@name='partner_id']" position="attributes">
+                <attribute name="invisible">is_kpi_plan</attribute>
+            </xpath>
+
+            <xpath expr="//field[@name='date_start']" position="attributes">
+                <attribute name="readonly">is_kpi_plan</attribute>
+                <attribute name="force_save">1</attribute> 
+            </xpath>
+            <xpath expr="//field[@name='date']" position="attributes">
+                <attribute name="readonly">is_kpi_plan</attribute>
+                <attribute name="force_save">1</attribute>
+            </xpath>
+
             <xpath expr="//div[hasclass('oe_title')]" position="inside">
                 <div class="o_row">
                     <field name="is_kpi_plan"/>
@@ -41,16 +55,12 @@
         <field name="arch" type="xml">
             
             <xpath expr="//field[@name='partner_id']" position="attributes">
-                <attribute name="invisible">1</attribute>
+                <attribute name="column_invisible">1</attribute>
             </xpath>
 
             <xpath expr="//field[@name='name']" position="after">
                 <field name="year" optional="show"/>
-                <field name="kpi_completion_rate" widget="percentage" optional="show"/>
-                
                 <field name="department_id" optional="hide"/>
-                <field name="kpi_year_target" optional="hide"/>
-                <field name="kpi_year_score" optional="hide" sum="Tổng điểm"/>
             </xpath>
             
             </field>
@@ -65,13 +75,11 @@
                 <searchpanel>
                     <field name="department_id" string="PHÒNG BAN" icon="fa-users" select="multi" enable_counters="1"/>
                     <field name="user_id" string="NGƯỜI QUẢN LÝ" icon="fa-user" select="multi" enable_counters="1"/>
+                    <field name="kpi_filter_selection" string="KẾ HOẠCH KPI" icon="fa-check-square" select="multi" enable_counters="1"/>
                 </searchpanel>
             </xpath>
 
-            <xpath expr="//filter[@name='my_projects']" position="after">
-                <filter string="Là Kế hoạch KPI" name="filter_is_kpi_plan" domain="[('is_kpi_plan', '=', True)]"/>
-                <separator/>
-            </xpath>
+            
             <xpath expr="//filter[@name='Manager']" position="after">
                 <filter string="Năm kế hoạch" name="group_by_year" context="{'group_by': 'year'}"/>
                 <filter string="Phòng ban" name="group_by_department" context="{'group_by': 'department_id'}"/>
