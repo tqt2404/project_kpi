@@ -25,20 +25,4 @@
         </field>
     </record>
 
-    <record id="view_project_task_kpi_report_tree" model="ir.ui.view">
-        <field name="name">project.task.kpi.report.tree</field>
-        <field name="model">project.task</field>
-        <field name="arch" type="xml">
-            <tree string="Tổng hợp KPI" create="false" edit="false">
-                <field name="kpi_month" />
-                <field name="department_id" />
-                <field name="kpi_user_id" widget="many2one_avatar_user"/>
-                <field name="name" string="Chỉ số/Công việc"/>
-                <field name="kpi_target" sum="Tổng mục tiêu"/>
-                <field name="kpi_actual" sum="Tổng thực tế"/>
-                <field name="kpi_weight" />
-                <field name="kpi_score" sum="Tổng điểm" widget="badge" decoration-success="kpi_score >= 10"/>
-            </tree>
-        </field>
-    </record>
 </odoo>

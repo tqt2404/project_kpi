@@ -9,5 +9,6 @@
               name="Dashboard"
               action="action_kpi_dashboard_owl"
               parent="project.menu_main_pm"
+              groups="project.group_project_manager"
               sequence="1"/>
 </odoo>

@@ -52,6 +52,13 @@ class Project(models.Model):
         store=True
     )
 
+    kpi_state = fields.Selection([
+        ('draft', 'Mới'),
+        ('in_progress', 'Đang thực thi'),
+        ('done', 'Hoàn thành'),
+        ('cancel', 'Hủy bỏ')
+    ], string='Trạng thái Kế hoạch', default='draft', tracking=True)
+
     kpi_completion_rate = fields.Float(
         string='Tỷ lệ hoàn thành (%)',
         compute='_compute_kpi_completion_rate',
@@ -134,7 +141,8 @@ class Project(models.Model):
                 except:
                     pass
             elif not record.is_kpi_plan:
-                pass
+                record.date_start = False
+                record.date = False
             
     @api.model_create_multi
     def create(self, vals_list):
@@ -147,6 +155,7 @@ class Project(models.Model):
                     self.env['project.task.type'].create({
                         'name': stage_name,
                         'sequence': i,
-                        'project_ids': [(4, project.id)]
+                        'project_ids': [(4, project.id)],
+                        'fold': False
                     })
         return projects

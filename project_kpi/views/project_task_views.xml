@@ -129,7 +129,11 @@
                 <field name="kpi_month"/>
                 <field name="kpi_target" sum="Tổng mục tiêu"/>
                 <field name="kpi_actual" sum="Tổng thực tế"/>
-                <field name="kpi_score" sum="Tổng điểm" widget="badge" decoration-success="kpi_score > 0"/>
+                <field name="kpi_weight" column_invisible="True"/>
+                <field name="kpi_score" sum="Tổng điểm" widget="badge" 
+                    decoration-success="kpi_score &gt;= kpi_weight" 
+                    decoration-warning="kpi_score &lt; kpi_weight and kpi_score &gt; 0" 
+                    decoration-danger="kpi_score == 0"/>
             </tree>
         </field>
     </record>

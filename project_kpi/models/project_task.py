@@ -15,14 +15,15 @@ class Task(models.Model):
         ('10', 'Tháng 10'), ('11', 'Tháng 11'), ('12', 'Tháng 12')
     ], string='Tháng đánh giá')
     
-    kpi_weight = fields.Float(string='Trọng số KPI (%)')
-    kpi_target = fields.Float(string='KPI mục tiêu')
-    kpi_actual = fields.Float(string='KPI thực tế')
+    kpi_weight = fields.Float(string='Trọng số KPI (%)',tracking=True)
+    kpi_target = fields.Float(string='KPI mục tiêu',tracking=True)
+    kpi_actual = fields.Float(string='KPI thực tế',tracking=True)
     
     kpi_score = fields.Float(
         string='Điểm KPI',
         compute='_compute_kpi_score',
-        store=True
+        store=True,
+        tracking=True
     )
     kpi_user_id = fields.Many2one(
         'res.users', 
@@ -147,3 +148,25 @@ class Task(models.Model):
                         "Lỗi logic! Dự án này đã có kế hoạch KPI cho %s. "
                         "Mỗi tháng chỉ được phép tạo một Task KPI duy nhất." % month_label
                     )
+                    
+    @api.model_create_multi
+    def create(self, vals_list):
+        for vals in vals_list:
+            if vals.get('project_id'):
+                project = self.env['project.project'].browse(vals['project_id'])
+                if project.is_kpi_plan and getattr(project, 'kpi_state', False) == 'done':
+                    raise ValidationError("Lỗi! Không thể tạo thêm nhiệm vụ vì Kế hoạch năm đã chốt.")
+        return super(Task, self).create(vals_list)
+
+    def write(self, vals):
+        for task in self:
+            if task.is_kpi_plan and task.project_id and getattr(task.project_id, 'kpi_state', False) == 'done':
+                raise ValidationError("Lỗi! Không thể chỉnh sửa dữ liệu vì Kế hoạch năm đã Đã chốt năm.")
+            # Chặn nhân viên tự sửa Target và Weight
+            if task.is_kpi_plan:
+                restricted_fields = {'kpi_target', 'kpi_weight', 'kpi_month'}
+                if any(field in vals for field in restricted_fields):
+                    if not self.env.user.has_group('project.group_project_manager'):
+                        raise ValidationError("Lỗi Bảo mật: Bạn chỉ được phép cập nhật số liệu [Thực tế]. Chỉ có Quản lý mới được phép sửa đổi [Mục tiêu] và [Trọng số] KPI!")
+
+        return super(Task, self).write(vals)
