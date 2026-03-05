@@ -13,7 +13,7 @@ class Task(models.Model):
         ('04', 'Tháng 4'), ('05', 'Tháng 5'), ('06', 'Tháng 6'),
         ('07', 'Tháng 7'), ('08', 'Tháng 8'), ('09', 'Tháng 9'),
         ('10', 'Tháng 10'), ('11', 'Tháng 11'), ('12', 'Tháng 12')
-    ], string='Tháng đánh giá',require=True)
+    ], string='Tháng đánh giá')
     
     kpi_weight = fields.Float(string='Trọng số KPI (%)')
     kpi_target = fields.Float(string='KPI mục tiêu')
@@ -41,7 +41,7 @@ class Task(models.Model):
         'hr.department', 
         string='Phòng ban',
         store=True,
-        require = True
+        required = True
     )
     
     kpi_completion_rate = fields.Float(
@@ -51,14 +51,19 @@ class Task(models.Model):
         group_operator="avg" # QUYẾT ĐỊNH: Giúp dòng tiêu đề hiện đúng % dự án
     )
     
+    kpi_date_start = fields.Date(string='Ngày bắt đầu KPI')
+
     @api.onchange('kpi_month', 'project_id')
     def _onchange_kpi_month_set_deadline(self):
-        """Tự động tính ngày cuối cùng của tháng và gán vào date_deadline"""
+        """Tự động tính ngày đầu tháng và ngày cuối tháng"""
         for record in self:
             if record.is_kpi_plan and record.kpi_month and record.project_id.year:
                 try:
                     year = int(record.project_id.year)
                     month = int(record.kpi_month)
+                    record.kpi_date_start = datetime.date(year, month, 1)
+                    
+                    # 2. Gán ngày cuối tháng
                     last_day = datetime.date(year, month, 1) + relativedelta(months=1, days=-1)
                     record.date_deadline = last_day
                 except ValueError:

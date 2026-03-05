@@ -34,10 +34,17 @@
                 <attribute name="invisible">is_kpi_plan</attribute>
             </xpath>
             
-            <xpath expr="//field[@name='date_deadline']" position="attributes">
-                <attribute name="invisible">is_kpi_plan</attribute>
+            <xpath expr="//field[@name='date_deadline']" position="replace">
+                <field name="kpi_date_start" 
+                    string="Thời hạn" 
+                    widget="daterange" 
+                    options="{'end_date_field': 'date_deadline'}" 
+                    invisible="not is_kpi_plan" 
+                    readonly="1" 
+                    force_save="1"/>
+                    
+                <field name="date_deadline" invisible="is_kpi_plan"/>
             </xpath>
-
             <xpath expr="//field[@name='milestone_id']" position="attributes">
                 <attribute name="invisible">is_kpi_plan</attribute>
             </xpath>
@@ -67,10 +74,6 @@
             <xpath expr="//field[@name='name']" position="after">
                 <field name="kpi_month" string="Tháng" optional="show"/>
                 <field name="kpi_user_id" widget="many2one_avatar_user" string="Nhân sự" optional="show"/>
-                <field name="kpi_weight" string="Trọng số (%)" optional="show" sum="Tổng trọng số"/>
-                <field name="kpi_target" string="Mục tiêu" optional="show"/>
-                <field name="kpi_actual" string="Thực tế" optional="show"/>
-                <field name="kpi_score" string="Điểm" optional="show" sum="Tổng điểm" widget="badge" decoration-success="kpi_score > 0"/>
             </xpath>
         </field>
     </record>
@@ -82,7 +85,7 @@
         <field name="arch" type="xml">
             <xpath expr="//search" position="inside">
                 <searchpanel>
-                    <field name="state" string="Trạng thái" icon="fa-check-square-o" enable_counters="1" select="multi"/>
+                    <field name="stage_id" string="Trạng thái" icon="fa-check-square-o" enable_counters="1" select="multi"/>
                 </searchpanel>
             </xpath>
             

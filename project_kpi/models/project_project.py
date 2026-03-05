@@ -135,3 +135,18 @@ class Project(models.Model):
                     pass
             elif not record.is_kpi_plan:
                 pass
+            
+    @api.model_create_multi
+    def create(self, vals_list):
+        """Tự động tạo các Giai đoạn (Navbar) khi tạo mới Kế hoạch KPI"""
+        projects = super(Project, self).create(vals_list)
+        for project in projects:
+            if project.is_kpi_plan:
+                stages = ['Mới', 'Đang thực hiện', 'Đánh giá', 'Hoàn tất']
+                for i, stage_name in enumerate(stages):
+                    self.env['project.task.type'].create({
+                        'name': stage_name,
+                        'sequence': i,
+                        'project_ids': [(4, project.id)]
+                    })
+        return projects
