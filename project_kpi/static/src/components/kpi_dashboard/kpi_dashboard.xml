@@ -91,7 +91,9 @@
                                                 <td class="fw-bold"><t t-esc="user.name"/></td>
                                                 <td><span class="badge bg-secondary"><t t-esc="user.dept"/></span></td>
                                                 <td class="text-end pe-4">
-                                                    <span class="badge bg-success rounded-pill px-3 py-2 fs-6"><t t-esc="user.score"/></span>
+                                                    <span t-attf-class="badge bg-{{user.color}} rounded-pill px-3 py-2 fs-6">
+                                                        <t t-esc="user.score"/>
+                                                    </span>
                                                 </td>
                                             </tr>
                                         </t>

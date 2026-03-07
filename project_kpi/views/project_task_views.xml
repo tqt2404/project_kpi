@@ -104,7 +104,7 @@
                 <field name="name" string="Tiêu đề"/>
                 <field name="project_id"/>
                 <field name="department_id"/>
-                <filter string="Nhiệm vụ của tôi" name="my_tasks" domain="[('user_ids', 'in', uid)]"/>
+                <filter string="Nhiệm vụ của tôi" name="my_tasks" domain="['|', ('user_ids', 'in', uid), ('kpi_user_id', '=', uid)]"/>
                 <filter string="Là Task KPI" name="filter_is_kpi_task" domain="[('is_kpi_plan', '=', True)]"/>
                 <group expand="0" string="Nhóm theo">
                     <filter string="Giai đoạn" name="groupby_stage" context="{'group_by':'stage_id'}"/>
@@ -112,7 +112,7 @@
                 </group>
                 <searchpanel>
                     <field name="stage_id" string="GIAI ĐOẠN" icon="fa-list" select="multi" enable_counters="1"/>
-                    <field name="project_id" string="DỰ ÁN" icon="fa-briefcase" select="multi" enable_counters="1"/>
+                    <field name="department_id" icon="fa-building" select="multi" enable_counters="1"/>
                 </searchpanel>
             </search>
         </field>
@@ -147,9 +147,10 @@
                 <field name="kpi_user_id"/>
                 <filter string="KPI" name="filter_is_kpi_task" domain="[('is_kpi_plan', '=', True)]"/>
                 <group expand="1" string="Nhóm theo">
-                    <filter string="Tháng" name="group_month" context="{'group_by':'kpi_month'}"/>
-                    <filter string="Năm đánh giá" name="group_year" context="{'group_by':'kpi_year'}"/>
-                    <filter string="Phòng ban" name="group_department" context="{'group_by':'department_id'}"/>
+                    <filter string="Phòng ban" name="group_department" context="{'group_by': 'department_id'}"/>
+                    <filter string="Dự án" name="group_project" context="{'group_by': 'project_id'}"/>
+                    <filter string="Nhân sự" name="group_user" context="{'group_by': 'kpi_user_id'}"/>
+                    <filter string="Tháng" name="group_month" context="{'group_by': 'kpi_month'}"/>
                 </group>
                 <searchpanel>
                     <field name="kpi_year" string="NĂM" icon="fa-calendar" select="multi" enable_counters="1"/>

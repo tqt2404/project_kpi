@@ -28,4 +28,5 @@
               parent="project.menu_project_report"
               groups="project.group_project_manager"
               sequence="50"/>
+    
 </odoo>

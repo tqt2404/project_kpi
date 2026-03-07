@@ -55,16 +55,35 @@ class KpiDashboard(models.AbstractModel):
             fields=['kpi_score:sum'], 
             groupby=['kpi_user_id', 'department_id'], 
             orderby='kpi_score DESC', 
-            limit=10
+            limit=10,
+            lazy=False
         )
+        
+        max_score = user_group[0].get('kpi_score', 0.0) if user_group else 1.0
+        if max_score == 0: max_score = 1.0
         
         top_users = []
         for index, u in enumerate(user_group):
+            score = round(u.get('kpi_score', 0.0), 2)
+            
+            # Tính tỷ lệ so với người Top 1
+            ratio = score / max_score
+            
+            # Bảng màu chuẩn UX cho Dashboard
+            color_class = 'danger'        # Đỏ: Báo động (< 50% so với Top 1)
+            if ratio >= 0.9: 
+                color_class = 'success'   # Xanh lá: Nhóm dẫn đầu (Xuất sắc)
+            elif ratio >= 0.7: 
+                color_class = 'info'      # Xanh lơ: Nhóm bám đuổi (Khá tốt)
+            elif ratio >= 0.5: 
+                color_class = 'warning'   # Vàng: Nhóm giữa (Cần cố gắng)
+
             top_users.append({
                 'rank': index + 1,
-                'name': u['kpi_user_id'][1] if u.get('kpi_user_id') else 'Chưa xác định',
-                'dept': u['department_id'][1] if u.get('department_id') else 'Chưa phân bổ',
-                'score': round(u['kpi_score'], 2)
+                'name': u['kpi_user_id'][1] if u.get('kpi_user_id') else 'Ẩn danh',
+                'dept': u['department_id'][1] if u.get('department_id') else 'Phòng ban khác',
+                'score': score,
+                'color': color_class
             })
 
         return {

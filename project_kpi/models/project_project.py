@@ -153,16 +153,31 @@ class Project(models.Model):
             
     @api.model_create_multi
     def create(self, vals_list):
-        """Tự động tạo các Giai đoạn (Navbar) khi tạo mới Kế hoạch KPI"""
+        """Tự động khóa bảo mật và tạo/dùng chung Giai đoạn khi tạo Kế hoạch KPI"""
+        for vals in vals_list:
+            if vals.get('is_kpi_plan'):
+                vals['privacy_visibility'] = 'followers'
+
         projects = super(Project, self).create(vals_list)
+        
         for project in projects:
             if project.is_kpi_plan:
-                stages = ['Mới', 'Đang thực hiện', 'Đánh giá', 'Hoàn tất']
-                for i, stage_name in enumerate(stages):
-                    self.env['project.task.type'].create({
-                        'name': stage_name,
-                        'sequence': i,
-                        'project_ids': [(4, project.id)],
-                        'fold': False
-                    })
+                stage_names = ['Mới', 'Đang thực hiện', 'Đánh giá', 'Hoàn tất']
+                for i, stage_name in enumerate(stage_names):
+                    # 1. Tìm xem Giai đoạn này đã tồn tại trong DB chưa
+                    existing_stage = self.env['project.task.type'].search([
+                        ('name', '=', stage_name)
+                    ], limit=1)
+                    
+                    if existing_stage:
+                        # Nếu có rồi -> Thêm dự án này vào danh sách dùng chung Giai đoạn
+                        existing_stage.write({'project_ids': [(4, project.id)]})
+                    else:
+                        # Nếu chưa có (dự án đầu tiên) -> Tạo mới
+                        self.env['project.task.type'].create({
+                            'name': stage_name,
+                            'sequence': i,
+                            'project_ids': [(4, project.id)],
+                            'fold': False
+                        })
         return projects

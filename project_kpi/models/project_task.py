@@ -41,6 +41,7 @@ class Task(models.Model):
     department_id = fields.Many2one(
         'hr.department', 
         string='Phòng ban',
+        related='project_id.department_id',
         store=True,
         required = True
     )
