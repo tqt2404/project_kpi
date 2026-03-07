@@ -64,6 +64,13 @@ class Project(models.Model):
         compute='_compute_kpi_completion_rate',
         store=True
     )
+    
+    kpi_task_count = fields.Integer(string='Số lượng Task', compute='_compute_kpi_task_count')
+
+    @api.depends('task_ids.is_kpi_plan', 'task_ids.kpi_month')
+    def _compute_kpi_task_count(self):
+        for record in self:
+            record.kpi_task_count = len(record.task_ids.filtered(lambda t: t.is_kpi_plan and t.kpi_month))
 
     _sql_constraints = [
         ('unique_department_year', 

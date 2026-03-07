@@ -5,11 +5,19 @@
         <field name="model">project.project</field>
         <field name="inherit_id" ref="project.edit_project"/>
         <field name="arch" type="xml">
+            
             <xpath expr="//sheet" position="before">
                 <header invisible="not is_kpi_plan">
+                    <button name="%(project_kpi.action_project_kpi_wizard)d" 
+                            type="action" 
+                            string="Khởi tạo nhanh KPI Tháng" 
+                            class="oe_highlight" 
+                            invisible="kpi_task_count &gt;= 12"/>
+                            
                     <field name="kpi_state" widget="statusbar" options="{'clickable': '1'}"/>
                 </header>
             </xpath>
+            
             <xpath expr="//field[@name='partner_id']" position="attributes">
                 <attribute name="invisible">is_kpi_plan</attribute>
             </xpath>
@@ -18,6 +26,7 @@
                 <attribute name="readonly">is_kpi_plan</attribute>
                 <attribute name="force_save">1</attribute> 
             </xpath>
+            
             <xpath expr="//field[@name='date']" position="attributes">
                 <attribute name="readonly">is_kpi_plan</attribute>
                 <attribute name="force_save">1</attribute>
@@ -27,8 +36,10 @@
                 <div class="o_row">
                     <field name="is_kpi_plan"/>
                     <label for="is_kpi_plan"/>
+                    <field name="kpi_task_count" invisible="1"/>
                 </div>
             </xpath>
+            
             <xpath expr="//notebook" position="inside">
                 <page string="Kế hoạch KPI" invisible="not is_kpi_plan">
                     <group>
@@ -37,7 +48,6 @@
                             <field name="department_id" required="is_kpi_plan"/>
                         </group>
                         <group string="Kết quả">
-                            <field name="kpi_year_target" required="is_kpi_plan"/>
                             <field name="kpi_year_target" required="is_kpi_plan" readonly="kpi_state != 'draft'"/>
                             <field name="kpi_allocated_weight"/>
                             
@@ -57,17 +67,14 @@
         <field name="model">project.project</field>
         <field name="inherit_id" ref="project.view_project"/>
         <field name="arch" type="xml">
-            
             <xpath expr="//field[@name='partner_id']" position="attributes">
                 <attribute name="column_invisible">1</attribute>
             </xpath>
-
             <xpath expr="//field[@name='name']" position="after">
                 <field name="year" optional="show"/>
                 <field name="department_id" optional="hide"/>
             </xpath>
-            
-            </field>
+        </field>
     </record>
 
     <record id="view_project_project_filter_inherit_kpi" model="ir.ui.view">
@@ -82,8 +89,6 @@
                     <field name="kpi_filter_selection" string="KẾ HOẠCH KPI" icon="fa-check-square" select="multi" enable_counters="1"/>
                 </searchpanel>
             </xpath>
-
-            
             <xpath expr="//filter[@name='Manager']" position="after">
                 <filter string="Năm kế hoạch" name="group_by_year" context="{'group_by': 'year'}"/>
                 <filter string="Phòng ban" name="group_by_department" context="{'group_by': 'department_id'}"/>
