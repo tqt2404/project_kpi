@@ -1,160 +1,99 @@
-# Module Odoo: Project KPI Management (Quản lý KPI bằng Dự án)
+# Tài liệu Kỹ thuật: Module Project KPI Management
 
-**Project KPI** là một module tùy chỉnh (custom addon) dành cho Odoo 17. Module này tận dụng cấu trúc dữ liệu của ứng dụng Quản lý Dự án (Project) để xây dựng một hệ thống đánh giá hiệu suất nhân sự (KPI) tự động, trực quan và bảo mật.
+Project KPI là một module tùy chỉnh cấp doanh nghiệp (Enterprise Custom Addon) được phát triển trên nền tảng Odoo 17. Giải pháp này chuyển đổi ứng dụng Quản lý Dự án (Project) mặc định thành một hệ thống quản trị mục tiêu, đánh giá hiệu suất (KPI) tự động, trực quan và bảo mật. Thay vì phụ thuộc vào các bảng tính thủ công, Project KPI tập trung hóa toàn bộ quy trình đánh giá ngay trên hệ sinh thái quản trị của Odoo.
 
----
+## 1. Kiến trúc và Tính năng Cốt lõi
 
-## 1. Mô tả bài toán
+Hệ thống được thiết kế tối ưu từ cấu trúc cơ sở dữ liệu, trải nghiệm người dùng (UI/UX) đến phân quyền bảo mật, bao gồm các nhóm tính năng sau:
 
-**Bối cảnh:** Doanh nghiệp đang sử dụng Odoo để quản lý công việc và muốn tích hợp đánh giá nhân sự ngay trên hệ thống này, thay vì phải mua phần mềm bên ngoài hay tính toán thủ công bằng Excel.
+### Quản trị Kế hoạch và Mục tiêu
 
-**Giải pháp kiến trúc:**
-* **Kế hoạch năm (Yearly Plan):** Ánh xạ vào Model `project.project`. Mỗi dự án đại diện cho một Kế hoạch KPI của một Phòng ban trong một năm.
-* **KPI tháng (Monthly KPI):** Ánh xạ vào Model `project.task`. Mỗi nhiệm vụ (Task) đại diện cho một phiếu giao chỉ tiêu trong 1 tháng cụ thể cho 1 nhân sự.
-* **Dashboard & Report:** Sử dụng OWL (Odoo Web Library) và Chart.js để build Dashboard, kết hợp với SQL Views (Pivot/Graph) của Odoo để tự động tổng hợp điểm.
+* **Ánh xạ dữ liệu:** Sử dụng Model project.project để quản lý Kế hoạch KPI Năm và Model project.task để quản lý Phiếu KPI Tháng.
+* **Tự động hóa khởi tạo (Wizard):** Tích hợp công cụ Khởi tạo nhanh cho phép cấp quản lý tạo lập hàng loạt phiếu KPI cho toàn bộ chu kỳ 12 tháng chỉ với một thao tác. Hệ thống tự động kiểm tra và chỉ bổ sung các kỳ đánh giá còn thiếu, loại bỏ rủi ro trùng lặp dữ liệu.
+* **Chuẩn hóa quy trình (Workflow):** Tự động thiết lập các giai đoạn công việc tiêu chuẩn (Mới, Đang thực hiện, Đánh giá, Hoàn tất) và áp dụng chung cho mọi dự án KPI. Tự động tính toán ngày bắt đầu và hạn chót (Deadline) theo chu kỳ tháng được chọn.
 
----
+### Kiểm soát Dữ liệu và Phân quyền Bảo mật (Security)
 
-## 2. Hướng dẫn cài đặt (Dành cho Lập trình viên)
+* **Phân quyền truy cập đa tầng (Record Rules):** Áp dụng nguyên tắc đặc quyền tối thiểu. Nhân sự chỉ được phép truy cập phiếu KPI của cá nhân. Cấp quản lý trực tiếp được quyền giám sát dữ liệu của phòng ban trực thuộc. Quản trị viên hệ thống có quyền quản lý toàn cảnh.
+* **Bảo mật cấp Dự án:** Mọi Kế hoạch KPI khi được tạo ra đều tự động thiết lập chế độ bảo mật nội bộ (Followers Only), ngăn chặn rò rỉ dữ liệu nhạy cảm liên quan đến hiệu suất và lương thưởng.
+* **Ràng buộc nghiệp vụ (Business Constraints):**
+* Ngăn chặn tạo nhiều kế hoạch cho cùng một phòng ban trong một năm tài chính.
+* Giới hạn tối đa một phiếu đánh giá cho mỗi nhân sự trong một chu kỳ tháng.
+* Kiểm soát tổng mục tiêu phân bổ không vượt quá mục tiêu năm đã duyệt.
+* Kiểm soát tổng trọng số không vượt ngưỡng 100%.
 
-Phần này hướng dẫn các Developer thiết lập môi trường Local từ con số 0 để chạy và phát triển module.
 
-### Bước 2.1: Clone Source Code & Setup Môi trường
-Mở Terminal (Linux/macOS) hoặc Git Bash (Windows) và chạy lần lượt các lệnh:
+* **Đóng kỳ đánh giá (Freeze):** Khi kế hoạch chuyển sang trạng thái Hoàn tất, toàn bộ dữ liệu của chu kỳ đó sẽ bị khóa (Readonly), ngăn chặn mọi hành vi chỉnh sửa số liệu thực tế nhằm thay đổi kết quả đánh giá.
+
+### Hệ thống Báo cáo và Phân tích (Dashboard & Analytics)
+
+* **Dashboard:** Bảng điều khiển tổng quan, xử lý dữ liệu và Cung cấp bộ lọc động theo Năm, Tháng, Phòng ban và tự động tính toán các chỉ số tổng hợp.
+* **Bảng xếp hạng hiệu suất:** Hiển thị danh sách nhân sự xuất sắc. Thuật toán tự động lấy điểm của nhân sự dẫn đầu làm hệ quy chiếu (100%) để phân loại và hiển thị cảnh báo bằng màu sắc tương đối, giúp duy trì tính chính xác của biểu đồ khi xem ở nhiều góc độ thời gian khác nhau.
+* **Phân tích đa chiều:** Tích hợp sẵn các góc nhìn Pivot và Graph nguyên bản của Odoo, hỗ trợ ban lãnh đạo phân tích chéo dữ liệu hiệu suất theo phòng ban, nhân sự và thời gian.
+
+## 2. Hướng dẫn Triển khai (Dành cho Lập trình viên)
+
+Quy trình thiết lập môi trường phát triển và cài đặt module trên máy chủ:
 
 ```bash
-# 1. Tạo thư mục Workspace chứa toàn bộ dự án
-mkdir odoo_kpi_workspace
-cd odoo_kpi_workspace
+# 1. Tạo thư mục làm việc
+mkdir odoo_kpi_workspace && cd odoo_kpi_workspace
 
-# 2. Clone mã nguồn Odoo 17 (Bản gốc từ Github Odoo)
-git clone [https://github.com/odoo/odoo.git](https://github.com/odoo/odoo.git) -b 17.0 --depth 1
+# 2. Tải mã nguồn Odoo 17
+git clone https://github.com/odoo/odoo.git -b 17.0 --depth 1
 
-# 3. Tạo thư mục chứa các custom modules
-mkdir custom_addons
-cd custom_addons
+# 3. Tạo thư mục chứa custom addons và tải module Project KPI
+mkdir custom_addons && cd custom_addons
+git clone https://github.com/tqt2404/project_kpi.git
 
-# 4. Clone module Project KPI từ Github
-git clone [https://github.com/tqt2404/project_kpi.git](https://github.com/tqt2404/project_kpi.git)
-
-# 5. Phân quyền (Bắt buộc nếu bạn dùng Linux Server)
-# sudo chown -R odoo:odoo project_kpi/
-# sudo chmod -R 755 project_kpi/
-
-# 6. Quay lại thư mục gốc và Khởi chạy Odoo
+# 4. Khởi chạy máy chủ Odoo với đường dẫn addons tương ứng
 cd ..
-# Chạy lệnh odoo-bin, nhớ trỏ --addons-path tới cả 2 thư mục
-python odoo/odoo-bin -r <db_user> -w <db_password> --addons-path="odoo/addons,custom_addons"
+python odoo/odoo-bin -r <db_user> -w <db_password> --addons-path='odoo/addons,custom_addons'
 
 ```
 
-### Bước 2.2: Cài đặt trên giao diện Odoo
+Truy cập hệ thống, kích hoạt Developer Mode, cập nhật danh sách ứng dụng và tiến hành cài đặt module Project KPI.
 
-1. Truy cập `http://localhost:8069` và đăng nhập bằng tài khoản **Admin**.
-2. Vào **Settings (Cài đặt)** -> Cuộn xuống dưới cùng nhấn **Activate the developer mode**.
-3. Vào menu **Apps (Ứng dụng)** -> Bấm **Update Apps List (Cập nhật danh sách ứng dụng)** trên thanh công cụ -> Nhấn **Update**.
-4. Xóa bộ lọc `Apps` mặc định ở thanh tìm kiếm, gõ `Project KPI`.
-5. Nhấn **Install (Cài đặt)** và chờ hệ thống khởi động lại.
+## 3. Hướng dẫn Vận hành
 
----
+Quy trình vận hành được chia thành hai luồng tác vụ chính dành cho Cấp quản lý và Nhân sự thực thi.
 
-## 3. Hướng dẫn sử dụng chi tiết (Cho mọi người dùng)
+### Vai trò Cấp quản lý
 
-Để một hệ thống KPI hoạt động, chúng ta cần 2 vai trò: **Sếp (Người giao việc)** và **Nhân viên (Người làm việc)**. Hệ thống đã phân quyền sẵn cho 2 vai trò này.
+**Lập Kế hoạch Năm:**
 
-### 👨‍💼 VAI TRÒ 1: QUẢN LÝ (Sếp / Trưởng phòng)
+1. Truy cập phân hệ Dự án, khởi tạo bản ghi mới.
+2. Kích hoạt thuộc tính **Là Kế hoạch KPI**.
+3. Cập nhật các thông tin cơ sở: Năm đánh giá, Phòng ban chịu trách nhiệm, và KPI mục tiêu năm.
+4. Lưu bản ghi.
 
-Sếp sẽ là người vạch ra mục tiêu cả năm, sau đó chia nhỏ việc cho từng nhân viên trong từng tháng.
+**Phân bổ Chỉ tiêu:**
 
-**Thao tác 1: Tạo Kế hoạch cho cả năm**
+1. Tại giao diện Kế hoạch Năm, chọn tác vụ Khởi tạo nhanh KPI Tháng.
+2. Cập nhật danh sách nhân sự phụ trách, trọng số phần trăm và mục tiêu cụ thể cho từng chu kỳ.
+3. Xác nhận tạo tự động các Phiếu KPI tháng.
 
-1. Mở ứng dụng **Dự án (Project)** -> Bấm nút **Mới (New)**.
-2. Đặt tên (VD: *Kế hoạch Kinh doanh 2026*).
-3. **BƯỚC QUAN TRỌNG NHẤT:** Dưới tên dự án có một ô vuông nhỏ tên là **"Là Kế hoạch KPI"**. Bạn PHẢI tích vào ô này.
-4. Ngay lập tức, một tab mới tên **"Kế hoạch KPI"** hiện ra. Bạn điền:
-* **Năm:** 2026.
-* **Phòng ban:** Chọn phòng ban của bạn.
-* **KPI mục tiêu năm:** Nhập tổng con số cả phòng phải đạt (VD: 1200 sản phẩm).
+**Giám sát và Phân tích:**
+Truy cập trang Dashboard để theo dõi tiến độ tổng thể, phân tích biểu đồ cơ cấu và đánh giá danh sách nhân sự đạt hiệu suất cao nhất.
 
+### Vai trò Nhân sự thực thi
 
-5. Bấm **Lưu**.
+1. Truy cập danh mục Nhiệm vụ của tôi để xem các Phiếu KPI được giao.
+2. Hệ thống mặc định khóa các trường thông tin Mục tiêu và Trọng số để đảm bảo tính toàn vẹn của chỉ tiêu.
+3. Tại thời điểm đánh giá, cập nhật số liệu vào trường KPI Thực tế.
+4. Chuyển trạng thái phiếu sang giai đoạn Đánh giá. Hệ thống sẽ tự động tính toán và hiển thị Điểm KPI.
 
-**Thao tác 2: Giao việc từng tháng cho Nhân viên**
+## 4. Logic Tính toán và Cơ chế Kiểm soát
 
-1. Mở Kế hoạch năm vừa tạo -> Bấm vào nút **Nhiệm vụ (Tasks)**.
-2. Tạo mới một Nhiệm vụ (VD: *Chỉ tiêu Tháng 1 - Của Nhân viên A*).
-3. Tìm đến nhóm **"Thông tin KPI"** và điền:
-* **Tháng đánh giá:** Chọn "Tháng 1".
-* **Nhân sự:** Chọn tên nhân viên A.
-* **Trọng số KPI (%):** Nhập độ quan trọng của công việc này (VD: 10%).
-* **KPI mục tiêu:** Nhập con số nhân viên A phải đạt trong tháng 1 (VD: 100 sản phẩm).
+Thuật toán tính điểm được thiết kế nhằm phản ánh chính xác hiệu suất đồng thời bảo vệ quỹ thưởng của doanh nghiệp trước các trường hợp vượt chỉ tiêu đột biến.
 
+**Công thức cơ sở:**
+Điểm KPI = (Thực tế / Mục tiêu) x Trọng số
 
-4. Bấm **Lưu**.
+**Cơ chế kiểm soát biên độ (Min/Max Capping):**
+Hệ thống can thiệp vào kết quả tính toán cuối cùng thông qua các hàm điều kiện:
 
-**Thao tác 3: Xem báo cáo (Dashboard)**
+1. **Giới hạn dưới:** Áp dụng hàm max bảo đảm điểm số không nhận giá trị âm trong mọi tình huống.
+2. **Giới hạn trần (120%):** Áp dụng hàm min để khống chế số điểm tối đa. Trong trường hợp nhân sự vượt chỉ tiêu ở mức không giới hạn, số điểm ghi nhận tối đa cho kỳ đánh giá đó không vượt quá 120% giá trị của Trọng số đã giao.
 
-* Sếp chỉ cần bấm vào chữ **Dashboard** trên menu ngang. Tại đây sếp chọn Năm, Tháng, Phòng ban là sẽ thấy ngay: Ai đang dẫn đầu (Top 10), phòng ban nào điểm cao nhất qua các biểu đồ tự động vẽ.
-
-### 🧑‍💻 VAI TRÒ 2: NHÂN VIÊN (Người báo cáo)
-
-*(Hệ thống bảo mật cực cao: Nhân viên đăng nhập vào CÓ TÌM MỎI MẮT cũng chỉ thấy được thẻ KPI của chính mình, không xem được của người khác).*
-
-1. Vào ứng dụng **Dự án (Project)** -> Bấm chữ **Nhiệm vụ của tôi (My Tasks)** trên cùng.
-2. Bấm vào Phiếu KPI của tháng này.
-3. Kéo xuống phần **"Thông tin KPI"**. Bạn sẽ thấy "Mục tiêu" Sếp giao đã bị khóa xám lại (không thể ăn gian sửa mục tiêu thấp xuống).
-4. Đến cuối tháng, bạn điền kết quả mình làm được vào ô **"KPI thực tế"**.
-5. Bấm **Lưu**. Hệ thống sẽ tự nảy số ở ô **"Điểm KPI"** cho bạn biết mình được bao nhiêu điểm.
-
----
-
-## 4. Giải thích logic tính KPI (Dễ hiểu cho người mới)
-
-Phần này giải thích cách hệ thống tính điểm. Ngay cả khi bạn chưa từng làm nhân sự, bạn cũng sẽ hiểu ngay!
-
-### KHÁI NIỆM CƠ BẢN CẦN BIẾT:
-
-* **Mục tiêu:** Con số sếp muốn bạn đạt được (VD: Bán 100 cái áo).
-* **Thực tế:** Con số bạn thực sự làm được (VD: Bán được 80 cái áo).
-* **Trọng số (%):** Mức độ quan trọng của công việc đó trong cả năm. Tổng trọng số 12 tháng cộng lại thường là 100%. Nếu tháng 1 có trọng số là 10%, nghĩa là tháng 1 đóng góp tối đa 10 điểm vào quỹ 100 điểm của cả năm.
-
-### A. Công thức tính điểm hàng tháng (Của Nhân viên)
-
-Hệ thống dùng công thức toán học:
-
-> **Điểm KPI = (Thực tế / Mục tiêu) × Trọng số**
-
-*Ví dụ: Sếp giao mục tiêu 100 cái, trọng số 10%. Bạn làm được 80 cái.*
-
-* *Cách tính: (80 / 100) * 10 = **8 điểm**.*
-
-**🔥 Đặc biệt: Cơ chế khóa chống "Bơm điểm ảo" (Min/Max)**
-Điều gì xảy ra nếu nhân viên bán được tới 300 cái áo? Nếu tính theo công thức trên: (300 / 100) * 10 = 30 điểm. Nếu điểm thưởng quy ra tiền, công ty sẽ vỡ quỹ!
-Do đó, code của chúng tôi giới hạn:
-
-1. **Không có điểm âm:** Kém nhất là 0 điểm.
-2. **Khóa trần 120%:** Dù bạn làm vượt chỉ tiêu 200% hay 300%, điểm tối đa bạn nhận được chỉ bằng **120% của Trọng số**.
-*(Ở ví dụ trên, trọng số là 10, vậy 120% của 10 là **12 điểm**. Nhân viên bán 300 cái áo cũng chỉ được tối đa 12 điểm cho tháng đó, để đảm bảo cân bằng quỹ thưởng của công ty).*
-
-### B. Logic tính điểm cả năm (Của Phòng ban)
-
-Hệ thống sẽ tự động làm toán cộng cho sếp:
-
-* **Tổng điểm năm:** Lấy điểm KPI của 12 tháng cộng lại với nhau.
-* **Tiến độ (%):** Bằng `(Tổng Thực tế của 12 tháng / Mục tiêu của cả năm) * 100`. Tiến độ này hiện ngay lên tên Kế hoạch để sếp nhìn lướt qua là biết.
-
-### C. Các lớp "Chống phá hoại" (Bảo vệ dữ liệu)
-
-Chúng tôi đã lập trình các quy tắc (Constraints) buộc người dùng không thể làm sai:
-
-1. **Chống lặp:** Nếu phòng IT đã tạo Kế hoạch năm 2026 rồi, ai ấn tạo thêm cái thứ 2 hệ thống sẽ báo lỗi đỏ rực và chặn lại ngay.
-2. **Mỗi tháng 1 phiếu:** Trong 1 năm, chỉ được tạo 1 phiếu cho Tháng 1. Cố tình tạo phiếu Tháng 1 thứ 2 sẽ bị phần mềm cấm.
-3. **Ngăn sếp giao việc vô lý:** * Tổng các "Mục tiêu tháng" cộng lại phần mềm KHÔNG CHO PHÉP vượt qua "Mục tiêu cả năm".
-* Tổng "Trọng số" các tháng cộng lại KHÔNG ĐƯỢC vượt quá 100%.
-
-
-4. **Khóa chốt sổ:** Cuối năm, khi trạng thái dự án được chuyển thành **"Hoàn thành"**, toàn bộ số liệu của 12 tháng sẽ bị "hóa đá" (Readonly). Không một ai có thể sửa lại số để gian lận tiền thưởng.
-
-```
-
-```
+Tiến độ hoàn thành của toàn bộ dự án được tính bằng tỷ lệ phần trăm giữa Tổng thực tế tích lũy và Mục tiêu năm, được cập nhật theo thời gian thực trên tiêu đề của Kế hoạch KPI.

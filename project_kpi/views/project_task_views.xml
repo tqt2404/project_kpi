@@ -57,23 +57,23 @@
         <field name="inherit_id" ref="project.view_task_tree2"/>
         <field name="arch" type="xml">
             <xpath expr="//field[@name='project_id']" position="attributes">
-                <attribute name="column_invisible">1</attribute>
+                <attribute name="invisible">1</attribute>
             </xpath>
             <xpath expr="//field[@name='partner_id']" position="attributes">
-                <attribute name="column_invisible">1</attribute>
+                <attribute name="invisible">1</attribute>
             </xpath>
             <xpath expr="//field[@name='tag_ids']" position="attributes">
-                <attribute name="column_invisible">1</attribute>
+                <attribute name="invisible">1</attribute>
             </xpath>
             <xpath expr="//field[@name='activity_ids']" position="attributes">
-                <attribute name="column_invisible">1</attribute>
+                <attribute name="invisible">1</attribute>
             </xpath>
             <xpath expr="//field[@name='user_ids']" position="attributes">
-                <attribute name="column_invisible">1</attribute>
+                <attribute name="invisible">1</attribute>
             </xpath>
             <xpath expr="//field[@name='name']" position="after">
                 <field name="kpi_month" string="Tháng" optional="show"/>
-                <field name="kpi_user_id" widget="many2one_avatar_user" string="Nhân sự" optional="show"/>
+                <field name="kpi_user_id" string="Nhân sự" optional="show"/>
             </xpath>
         </field>
     </record>
@@ -85,7 +85,7 @@
         <field name="arch" type="xml">
             <xpath expr="//search" position="inside">
                 <searchpanel>
-                    <field name="stage_id" string="Trạng thái" icon="fa-check-square-o" enable_counters="1" select="multi"/>
+                    <field name="stage_id" string="Trạng thái" icon="fa-check-square-o" enable_counters="0" select="multi"/>
                 </searchpanel>
             </xpath>
             
@@ -111,8 +111,8 @@
                     <filter string="Phòng ban" name="groupby_department" context="{'group_by':'department_id'}"/>
                 </group>
                 <searchpanel>
-                    <field name="stage_id" string="GIAI ĐOẠN" icon="fa-list" select="multi" enable_counters="1"/>
-                    <field name="department_id" icon="fa-building" select="multi" enable_counters="1"/>
+                    <field name="stage_id" string="GIAI ĐOẠN" icon="fa-list" select="multi" enable_counters="0"/>
+                    <field name="department_id" icon="fa-building" select="multi" enable_counters="0"/>
                 </searchpanel>
             </search>
         </field>
@@ -125,12 +125,12 @@
             <tree string="KPI" decoration-info="is_kpi_plan" create="0">
                 <field name="is_kpi_plan" column_invisible="True"/>
                 <field name="name" string="Chỉ số/Nhiệm vụ"/>
-                <field name="kpi_user_id" widget="many2one_avatar_user"/>
+                <field name="kpi_user_id"/>
                 <field name="kpi_month"/>
-                <field name="kpi_target" sum="Tổng mục tiêu"/>
-                <field name="kpi_actual" sum="Tổng thực tế"/>
+                <field name="kpi_target"/>
+                <field name="kpi_actual"/>
                 <field name="kpi_weight" column_invisible="True"/>
-                <field name="kpi_score" sum="Tổng điểm" widget="badge" 
+                <field name="kpi_score" widget="badge" 
                     decoration-success="kpi_score &gt;= kpi_weight" 
                     decoration-warning="kpi_score &lt; kpi_weight and kpi_score &gt; 0" 
                     decoration-danger="kpi_score == 0"/>
@@ -153,19 +153,11 @@
                     <filter string="Tháng" name="group_month" context="{'group_by': 'kpi_month'}"/>
                 </group>
                 <searchpanel>
-                    <field name="kpi_year" string="NĂM" icon="fa-calendar" select="multi" enable_counters="1"/>
-                    <field name="department_id" string="PHÒNG BAN" icon="fa-users" select="multi" enable_counters="1"/>
+                    <field name="kpi_year" string="NĂM" icon="fa-calendar" select="multi" enable_counters="0"/>
+                    <field name="department_id" string="PHÒNG BAN" icon="fa-users" select="multi" enable_counters="0"/>
                 </searchpanel>
             </search>
         </field>
-    </record>
-
-    <record id="project.action_view_my_task" model="ir.actions.act_window">
-        <field name="name">Nhiệm vụ của tôi</field>
-        <field name="res_model">project.task</field>
-        <field name="view_mode">tree,kanban,form,calendar,pivot,graph,activity</field>
-        <field name="view_id" ref="project.view_task_tree2"/> <field name="search_view_id" ref="view_task_search_standard_with_sidebar"/>
-        <field name="context">{'search_default_my_tasks': 1}</field>
     </record>
 
     <record id="action_kpi_task_management" model="ir.actions.act_window">
@@ -216,6 +208,7 @@
         <field name="view_mode">tree,kanban,form,calendar,pivot,graph,activity</field>
         <field name="view_id" ref="project.view_task_tree2"/>
         <field name="search_view_id" ref="view_task_search_standard_with_sidebar"/>
+        <field name="limit">40</field>
         <field name="context">{'search_default_my_tasks': 1}</field>
         <field name="view_ids" eval="[(5, 0, 0), 
             (0, 0, {'view_mode': 'tree', 'view_id': ref('project.view_task_tree2'), 'sequence': 1}),

@@ -9,10 +9,11 @@
             <xpath expr="//sheet" position="before">
                 <header invisible="not is_kpi_plan">
                     <button name="%(project_kpi.action_project_kpi_wizard)d" 
-                            type="action" 
-                            string="Khởi tạo nhanh KPI Tháng" 
-                            class="oe_highlight" 
-                            invisible="kpi_task_count &gt;= 12"/>
+                        type="action" 
+                        string="Khởi tạo nhanh KPI Tháng" 
+                        class="oe_highlight" 
+                        invisible="kpi_task_count &gt;= 12"
+                        groups="project.group_project_manager"/>
                             
                     <field name="kpi_state" widget="statusbar" options="{'clickable': '1'}"/>
                 </header>
@@ -68,7 +69,7 @@
         <field name="inherit_id" ref="project.view_project"/>
         <field name="arch" type="xml">
             <xpath expr="//field[@name='partner_id']" position="attributes">
-                <attribute name="column_invisible">1</attribute>
+                <attribute name="invisible">1</attribute>
             </xpath>
             <xpath expr="//field[@name='name']" position="after">
                 <field name="year" optional="show"/>

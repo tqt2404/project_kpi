@@ -72,20 +72,26 @@ class Project(models.Model):
         for record in self:
             record.kpi_task_count = len(record.task_ids.filtered(lambda t: t.is_kpi_plan and t.kpi_month))
 
-    _sql_constraints = [
-        ('unique_department_year', 
-         'UNIQUE(department_id, year)', 
-         'Lỗi: Mỗi phòng ban chỉ được phép có một kế hoạch KPI trong một năm!')
-    ]
+    @api.constrains('department_id', 'year', 'is_kpi_plan')
+    def _check_unique_kpi_plan(self):
+        for record in self:
+            if record.is_kpi_plan and record.department_id and record.year:
+                # Tìm xem có dự án KPI nào khác của phòng này trong năm này chưa
+                domain = [
+                    ('is_kpi_plan', '=', True),
+                    ('department_id', '=', record.department_id.id),
+                    ('year', '=', record.year),
+                    ('id', '!=', record.id) # Loại trừ chính nó
+                ]
+                if self.search_count(domain) > 0:
+                    raise ValidationError("Lỗi: Mỗi phòng ban chỉ được phép có một kế hoạch KPI trong một năm!")
     
     
     def _compute_display_name(self):
         super()._compute_display_name()
         for record in self:
             if record.is_kpi_plan and record.department_id:
-                percentage = int(record.kpi_completion_rate * 100)
-                # Tên sẽ là: [2026 - IT] Kế hoạch năm - Tiến độ: 84%
-                record.display_name = f"[{record.year} - {record.department_id.name}] {record.name} - Tiến độ: {percentage}%"
+                record.display_name = f"[{record.year} - {record.department_id.name}] {record.name}"
                 
     @api.depends('task_ids.kpi_actual', 'task_ids.kpi_score', 'is_kpi_plan')
     def _compute_kpi_year_score(self):
