@@ -42,9 +42,9 @@ class Task(models.Model):
     department_id = fields.Many2one(
         'hr.department', 
         string='Phòng ban',
-        related='project_id.department_id',
+        default=lambda self: self.env.user.employee_id.department_id.id,
         store=True,
-        required = True,
+        required=True,
         index=True
     )
     
@@ -183,19 +183,22 @@ class Task(models.Model):
 
     def write(self, vals):
         for task in self:
+            # 1. Chặn sửa nếu dự án đã đóng
             if task.is_kpi_plan and task.project_id and getattr(task.project_id, 'kpi_state', False) == 'done':
                 raise ValidationError("Lỗi! Không thể chỉnh sửa dữ liệu vì Kế hoạch năm đã Đã chốt năm.")
-            # Chặn nhân viên tự sửa Target và Weight
+            
             if task.is_kpi_plan:
                 restricted_fields = {'kpi_target', 'kpi_weight', 'kpi_month'}
-                if any(field in vals for field in restricted_fields):
-                    if not self.env.user.has_group('project.group_project_manager'):
-                        raise ValidationError("Lỗi Bảo mật: Bạn chỉ được phép cập nhật số liệu [Thực tế]. Chỉ có Quản lý mới được phép sửa đổi [Mục tiêu] và [Trọng số] KPI!")
+                for field in restricted_fields:
+                    if field in vals and vals[field] != task[field]:
+                        if not self.env.user.has_group('project.group_project_manager'):
+                            raise ValidationError("Lỗi Bảo mật: Bạn chỉ được phép cập nhật số liệu [Thực tế]...")
 
         res = super(Task, self).write(vals)
-        
-        if 'kpi_user_id' in vals and vals.get('kpi_user_id'):
+    
+        if 'kpi_user_id' in vals:
             for task in self:
-                task.user_ids = [(4, task.kpi_user_id.id)]
-                
+                if task.kpi_user_id:
+                    task.user_ids = [(4, task.kpi_user_id.id)]
+                    
         return res

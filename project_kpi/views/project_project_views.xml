@@ -40,6 +40,9 @@
                     <field name="kpi_task_count" invisible="1"/>
                 </div>
             </xpath>
+            <xpath expr="//field[@name='label_tasks']" position="attributes">
+                <attribute name="invisible">is_kpi_plan == True</attribute>
+            </xpath>
             
             <xpath expr="//notebook" position="inside">
                 <page string="Kế hoạch KPI" invisible="not is_kpi_plan">
